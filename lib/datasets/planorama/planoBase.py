@@ -10,6 +10,7 @@ def _prepare_dataset(path):
 		data=pickle.load(ff)
 	with open(path + 'train.txt') as ff:
 		train_list=ff.readlines()
+        pdb.set_trace()
 	ilist=[]
 	annot=[]
 	indtrain=[]
@@ -18,14 +19,14 @@ def _prepare_dataset(path):
 		yb=[]
 		im_info=data[im]
 		imname= str(im+'Detorted.png')
-		try : facings=im_info['corr_facings']
+		try : facings=im_info['facings']
 		except : facings=im_info['facings']
 		try:
 			for facing in facings:
-				x1=facing['x']
-				y1=facing['y']
-				x2=x1+facing['w']
-				y2=y1+facing['h']
+				x1=facing[1]['x']
+				y1=facing[1]['y']
+				x2=x1+facing[1]['w']
+				y2=y1+facing[1]['h']
 				boxes.append([x1,y1,x2,y2])
 				yb.append(y2)
 			yb=np.array(yb)
@@ -39,14 +40,13 @@ def _prepare_dataset(path):
 			ilist.append(imname)
 			annot.append(np.array(boxes))
 			if imname +'\n' in train_list: indtrain.append(len(ilist) -1)
-			#indtrain.append(len(ilist)-1)
+                        #indtrain.append(len(ilist)-1)
 	return ilist, annot, indtrain
 
 
 class Planorama(object):
-    def __init__(self):
-	
-        self.PATH = "/mnt/dataset/detect_GSK_2/55681a9de1d50db239964b88_55681ae9e1d50db239964c72/"
+    def __init__(self,baseId):
+        self.PATH = "/mnt/dataset/%s/"%baseId
         self._pklfile = os.path.join(self.PATH, "dataset.pkl")
         if not os.path.isfile(self._pklfile):
             self.ILIST, self._annot, self._indtrain = _prepare_dataset(self.PATH)
@@ -57,6 +57,8 @@ class Planorama(object):
                 self.ILIST, self._annot, self._indtrain = pickle.load(fid)
         self.NIMAGES = len(self.ILIST)
         self.imname_to_index = {self.ILIST[i]: i for i in range(self.NIMAGES)}
+        print "prototxt creation"
+        os.system('cp -r  models/planoTest models/planoDeploy_%s'%baseId)
 
     def get_train_indices(self):
         return self._indtrain
@@ -139,13 +141,13 @@ class Planorama(object):
         b = doc.body(onload="select_range()")
         b.h(1, ' a Plano dataset test (%d images with a box)'%(self.NIMAGES))
         b.p('Boxes are computed to encompass all products, with a margin of 0 pixels.')
-        b.p('<select id="select_range" onChange="select_range()">%s</select>'%(htmloptions(["%05d_%05d"%(i*100+1, min(i*100+100, self.NIMAGES)) for i in range(0,self.NIMAGES//100)])))
+        b.p('<select id="select_range" onChange="select_range()">%s</select>'%(htmloptions(["%05d_%05d"%(i*10+1, min(i*10+10, self.NIMAGES)) for i in range(0,self.NIMAGES//10)])))
         b.div(id="div_display",style="zoom: 1;")
         doc.save( os.path.join(self.PATH, "boxes.html") )
-        for j in range(0,self.NIMAGES//100):
+        for j in range(0,self.NIMAGES//10):
             t = Table(border="1", cellpadding="5")
-            imin = j*100;
-            imax = min(j*100+100, self.NIMAGES)
+            imin = j*10;
+            imax = min(j*10+10, self.NIMAGES)
             for i in range(imin,imax):
                 if i%5==0: r = t.row(align="center")
                 r.cell( gen_bbox_html( image_path+self.ILIST[i], self.get_bbox(i), self.ILIST[i][:-4], self.get_resolution(i)) )

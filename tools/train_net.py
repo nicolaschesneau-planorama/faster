@@ -9,7 +9,7 @@
 
 """Train a Fast R-CNN network on a region of interest database."""
 
-import _init_paths
+import _init_paths,os
 from fast_rcnn.train import get_training_roidb, train_net
 from fast_rcnn.config import cfg, cfg_from_file, cfg_from_list, get_output_dir
 from datasets.factory import get_imdb
@@ -66,7 +66,7 @@ def combined_roidb(imdb_names):
         print 'Set proposal method: {:s}'.format(cfg.TRAIN.PROPOSAL_METHOD)
         roidb = get_training_roidb(imdb)
         return roidb
-
+    
     roidbs = [get_roidb(s) for s in imdb_names.split('+')]
     roidb = roidbs[0]
     if len(roidbs) > 1:
@@ -76,6 +76,12 @@ def combined_roidb(imdb_names):
     else:
         imdb = get_imdb(imdb_names)
     return imdb, roidb
+
+def output_dir(imdb_name):
+    outdir = "/mnt/py-faster-rcnn/output/faster_rcnn_end2end/%s"%imdb_name
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+    return outdir
 
 if __name__ == '__main__':
     args = parse_args()
@@ -103,7 +109,8 @@ if __name__ == '__main__':
 
     imdb, roidb = combined_roidb(args.imdb_name)
     print '{:d} roidb entries'.format(len(roidb))
-    output_dir = get_output_dir(imdb)
+    #output_dir = get_output_dir(imdb)
+    output_dir = output_dir(args.imdb_name)
     print 'Output will be saved to `{:s}`'.format(output_dir)
 
     train_net(args.solver, roidb, output_dir,

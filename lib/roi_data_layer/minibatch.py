@@ -29,7 +29,6 @@ def get_minibatch(roidb, num_classes):
     im_blob, im_scales = _get_image_blob(roidb, random_scale_inds)
 
     blobs = {'data': im_blob}
-
     if cfg.TRAIN.HAS_RPN:
         assert len(im_scales) == 1, "Single batch only"
         assert len(roidb) == 1, "Single batch only"

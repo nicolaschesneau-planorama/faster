@@ -11,7 +11,7 @@ __sets = {}
 
 from datasets.pascal_voc import pascal_voc
 from datasets.coco import coco
-import datasets.planoTest
+import datasets.planoDeploy
 import numpy as np
 
 # Set up voc_<year>_<split> using selective search "fast" mode
@@ -32,10 +32,13 @@ for year in ['2015']:
         name = 'coco_{}_{}'.format(year, split)
         __sets[name] = (lambda split=split, year=year: coco(split, year))
 
-for split in ["train","test","full"]:
-    __sets['planoTest_'+split] = (lambda split=split: datasets.planoTest.planoTest(split))
 
-def get_imdb(name):
+for baseId in ['5511acb455c467fd66faab4e_5550e6cc673ddd5b3b6e34d4','55681a9de1d50db239964b88_55681ae9e1d50db239964c72']:
+    for split in ["train","test","full"]:
+        name='planoDeploy_{}_{}'.format(baseId,split)
+        __sets[name] = (lambda split=split, baseId=baseId: datasets.planoDeploy.planoDeploy(split,baseId))
+
+def get_imdb(name,path=None,baseId=None):
     """Get an imdb (image database) by name."""
     if not __sets.has_key(name):
         raise KeyError('Unknown dataset: {}'.format(name))
